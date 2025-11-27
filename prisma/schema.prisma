@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model RFQ {
+  id          String   @id @default(uuid())
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  items       RFQItem[]
+  suppliers   Supplier[]
+  priceThreshold Float? // Price increase threshold percentage
+}
+
+model RFQItem {
+  id            String   @id @default(uuid())
+  rfqId         String
+  rfq           RFQ      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  sku           String
+  productName   String?
+  mpn           String?
+  category      String
+  targetPrice Float
+  quantity      Int      // Quantity needed (absolute value of negative Available)
+  onOrder       Int      @default(0) // Quantity already on order
+  forcedSupplierId String? // Override: force purchase from this supplier even if not cheapest
+  quotes        Quote[]
+}
+
+model Supplier {
+  id          String   @id @default(uuid())
+  rfqId       String
+  rfq         RFQ      @relation(fields: [rfqId], references: [id], onDelete: Cascade)
+  name        String
+  email       String
+  uniqueToken String   @unique
+  createdAt   DateTime @default(now())
+  quotes      Quote[]
+}
+
+model Quote {
+  id            String   @id @default(uuid())
+  supplierId    String
+  supplier      Supplier @relation(fields: [supplierId], references: [id], onDelete: Cascade)
+  rfqItemId     String
+  rfqItem       RFQItem  @relation(fields: [rfqItemId], references: [id], onDelete: Cascade)
+  quotedPrice   Float?
+  supplierMpn   String?
+  comments      String?
+  submittedAt   DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model GlobalSupplier {
+  id            String   @id @default(uuid())
+  name          String   @unique
+  email         String
+  dearSupplierId String? // Link to Dear Inventory supplier
+  syncedFromDear Boolean @default(false) // Whether synced from Dear
+  lastSyncedAt   DateTime? // When last synced from Dear
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model DearInventoryConfig {
+  id            String   @id @default(uuid())
+  accountId     String
+  applicationKey String  // Encrypted
+  baseUrl       String   @default("https://inventory.dearsystems.com/ExternalApi/v2")
+  isActive      Boolean  @default(true)
+  lastProductSync DateTime?
+  lastSupplierSync DateTime?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model SKUExclusionPattern {
+  id        String   @id @default(uuid())
+  pattern   String   @unique // Wildcard pattern like "BT_W2F_*" or "SYS_*"
+  description String? // Optional description
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CategoryExclusionPattern {
+  id        String   @id @default(uuid())
+  pattern   String   @unique // Wildcard pattern like "Test*" or "*Accessories*"
+  description String? // Optional description
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+

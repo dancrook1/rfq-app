@@ -1,0 +1,16 @@
+# Next.js Rewrite Rules for cPanel
+# This file handles routing for Next.js on Apache servers
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  
+  # Handle Next.js API routes
+  RewriteCond %{REQUEST_URI} ^/api/
+  RewriteRule ^api/(.*)$ http://localhost:3000/api/$1 [P,L]
+  
+  # Handle all other routes (Next.js pages)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^(.*)$ http://localhost:3000/$1 [P,L]
+</IfModule>
+
