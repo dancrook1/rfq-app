@@ -106,23 +106,41 @@ app.prepare().then(() => {
 
 ### Via SSH (Recommended):
 ```bash
-cd ~/rfq-app  # or your app directory
+cd ~/rfq.wired2fire.co.uk  # or your app directory
 npm install
-npm run build
 npx prisma generate
+npm run build  # IMPORTANT: Must build before starting!
 npx prisma db push  # or migrate for MySQL
 ```
+
+**⚠️ CRITICAL**: You MUST run `npm run build` before starting the app. The error "ENOENT: no such file or directory, open '.next/BUILD_ID'" means the build step was skipped.
 
 ### Via cPanel Terminal:
 1. Open Terminal in cPanel
 2. Navigate to your app directory
 3. Run the same commands above
 
-## Step 6: Start the Application
+## Step 6: Build and Start the Application
 
-1. In cPanel Node.js App settings, click "Restart App"
-2. The app should start on port 3000
-3. Check the logs for any errors
+**IMPORTANT**: The app MUST be built before starting!
+
+1. **Build the application** (via SSH or Terminal):
+   ```bash
+   cd ~/rfq.wired2fire.co.uk
+   npm run build
+   ```
+   This creates the `.next` folder with all necessary build files.
+
+2. **Verify build succeeded**:
+   - Check that `.next` folder exists
+   - Check that `.next/BUILD_ID` file exists
+
+3. **Start/Restart the app**:
+   - In cPanel Node.js App settings, click "Restart App"
+   - The app should start on port 3000
+   - Check the logs for any errors
+
+**Note**: If you see "ENOENT: no such file or directory, open '.next/BUILD_ID'", it means you need to run `npm run build` first.
 
 ## Step 7: Configure Apache (If Needed)
 
