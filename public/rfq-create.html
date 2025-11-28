@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create RFQ - RFQ Management System</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="bg-light">
+  <div class="container py-4">
+    <div class="mb-4">
+      <a href="/" class="btn btn-outline-secondary mb-3">← Back to Home</a>
+      <h1 class="display-6 fw-bold">Create New RFQ</h1>
+    </div>
+
+    <div class="card shadow-sm">
+      <div class="card-body p-4">
+        <form id="rfqForm">
+          <div class="mb-3">
+            <label for="rfqName" class="form-label fw-semibold">RFQ Name</label>
+            <input type="text" id="rfqName" class="form-control" required placeholder="e.g., Q1 2025 Components">
+          </div>
+
+          <div class="mb-3">
+            <label for="priceThreshold" class="form-label fw-semibold">Price Threshold (%)</label>
+            <input type="number" id="priceThreshold" class="form-control" value="10" min="0" max="100" required>
+            <div class="form-text">Alert when quoted price exceeds target by this percentage</div>
+          </div>
+
+          <div class="global-suppliers-info"></div>
+
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Data Source</label>
+            <div class="d-flex gap-3">
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="dataSource" id="dataSourceCsv" value="csv" checked>
+                <label class="form-check-label" for="dataSourceCsv">CSV Upload</label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="dataSource" id="dataSourceApi" value="api">
+                <label class="form-check-label" for="dataSourceApi">Dear Inventory API</label>
+              </div>
+            </div>
+          </div>
+
+          <div id="csvSection">
+            <div class="mb-3">
+              <label for="csvFile" class="form-label fw-semibold">CSV File</label>
+              <input type="file" id="csvFile" accept=".csv" class="form-control">
+            </div>
+          </div>
+
+          <div id="apiSection" class="d-none">
+            <div class="mb-3">
+              <button type="button" id="fetchProducts" class="btn btn-primary">Fetch Products from Dear Inventory</button>
+              <div id="apiStatus" class="mt-2 small"></div>
+            </div>
+          </div>
+
+          <div id="productsPreview" class="d-none mb-3">
+            <h5 class="mb-3">Products Found: <span id="productCount" class="badge bg-primary">0</span></h5>
+            <div class="table-responsive" style="max-height: 400px;">
+              <table class="table table-sm table-hover">
+                <thead class="table-light">
+                  <tr>
+                    <th>SKU</th>
+                    <th>Product Name</th>
+                    <th>Category</th>
+                    <th class="text-end">Qty</th>
+                  </tr>
+                </thead>
+                <tbody id="productsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Create RFQ</button>
+            <a href="/" class="btn btn-outline-secondary">Cancel</a>
+          </div>
+
+          <div id="errorMessage" class="alert alert-danger d-none mt-3"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="/js/rfq-create.js"></script>
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+</body>
+</html>
+

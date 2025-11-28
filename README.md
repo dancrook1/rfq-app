@@ -1,66 +1,117 @@
 # RFQ Management System
 
-A Next.js web application for managing Request for Quotations (RFQ) from suppliers.
+A Node.js web application for managing Request for Quotations (RFQ) from suppliers. Built with Express.js, vanilla JavaScript, and Bootstrap CSS.
 
 ## Features
 
-- **CSV Import**: Import RFQ data from Availability Report CSV files
 - **Dear Inventory (Cin7) API Integration**: Fetch products and suppliers directly from Dear Inventory
-- **Automatic Supplier Sync**: Synchronize suppliers from Dear Inventory with merge/replace/supplement strategies
-- **Product Lookup**: Automatically extracts product name, MPN, and category from CSV data or API
+- **Automatic Supplier Sync**: Synchronize suppliers from Dear Inventory
 - **Supplier Portal**: Unique links for each supplier to view and submit quotes
-- **Category Organization**: Products organized by categories (Motherboard, GPU, CPU, etc.)
-- **Quote Management**: Suppliers can submit prices, MPNs, and comments for each item
-- **Summary Dashboard**: View all quotes, filter by category, identify cheapest prices
+- **Category Organization**: Products organized by categories with filtering
+- **Quote Management**: Suppliers can submit prices, MPNs, and comments
+- **Summary Dashboard**: View all quotes, filter, identify cheapest prices
 - **Price Alerts**: Highlights price increases beyond set threshold
-- **CSV Export**: Export selected quotes to CSV for ERP system integration
+- **Purchase Order Creation**: Push winning quotes to Cin7 as Purchase Orders
+- **Resizable Tables**: Interactive tables with resizable columns
+- **Real-time Updates**: Auto-refreshing summary page
 
-## Getting Started
+## Tech Stack
 
-### Prerequisites
+- **Backend**: Node.js + Express.js
+- **Frontend**: Plain HTML, CSS (Bootstrap 5.3.2), and Vanilla JavaScript
+- **Database**: Prisma ORM with SQLite (or PostgreSQL)
+- **Styling**: Bootstrap CSS with minimal custom CSS
 
-- Node.js 18+ 
-- npm or yarn
+## Quick Start
 
-### Installation
+### 1. Install Dependencies
 
-1. Install dependencies:
 ```bash
 npm install
 ```
 
-2. Set up the database:
+### 2. Set Up Database
+
 ```bash
 npx prisma generate
 npx prisma db push
 ```
 
-3. Run the development server:
+### 3. Configure Environment
+
+Create a `.env` file:
+
+```env
+DEAR_INVENTORY_ENCRYPTION_KEY=your-secure-encryption-key
+DATABASE_URL=file:./prisma/dev.db
+PORT=3000
+```
+
+### 4. Run the Server
+
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+Or for production:
+
+```bash
+npm start
+```
+
+The application will be available at `http://localhost:3000`
+
+## Project Structure
+
+```
+/
+├── server.js              # Main entry point (Express server)
+├── routes/                # API route handlers
+│   ├── rfq.js
+│   ├── rfq-id.js
+│   ├── rfq-supplier.js
+│   ├── supplier.js
+│   ├── settings.js
+│   └── dear-inventory.js
+├── lib/                   # Helper libraries
+│   ├── prisma.js
+│   ├── sku-filter.js
+│   └── dear-inventory.js
+├── public/                # Static files (HTML, CSS, JS)
+│   ├── index.html
+│   ├── rfq-create.html
+│   ├── rfq-detail.html
+│   ├── settings.html
+│   ├── supplier-portal.html
+│   ├── css/
+│   │   ├── style.css
+│   │   └── table-resize.css
+│   └── js/
+│       ├── home.js
+│       ├── rfq-create.js
+│       ├── rfq-detail.js
+│       ├── settings.js
+│       └── supplier-portal.js
+└── prisma/
+    └── schema.prisma      # Database schema
+```
 
 ## Usage
 
-### Setting Up Dear Inventory API (Optional)
+### Setting Up Dear Inventory API
 
 1. Navigate to "Settings"
 2. Enter your Dear Inventory Account ID and Application Key
 3. Test the connection
 4. Save the configuration
-5. Use "Sync Suppliers from Dear Inventory" to import your suppliers
-
-**Note**: The Application Key is encrypted in the database. Set `DEAR_INVENTORY_ENCRYPTION_KEY` environment variable for production use.
 
 ### Creating an RFQ
 
 1. Navigate to "Create New RFQ"
-2. Enter RFQ name and price threshold percentage
+2. Enter RFQ name and price threshold
 3. Choose data source:
-   - **CSV Upload**: Upload your Availability Report CSV file
-   - **Dear Inventory API**: Click "Fetch Products from Dear Inventory" to get real-time data
+   - **CSV Upload**: Upload your Availability Report CSV file (legacy)
+   - **Dear Inventory API**: Click "Fetch Products from Dear Inventory" (recommended)
 4. The system will automatically extract product names, MPNs, and categories
 
 ### Adding Suppliers
@@ -73,90 +124,103 @@ npm run dev
 **Option 2: RFQ-Specific Suppliers**
 1. Open an RFQ
 2. Go to "Manage Suppliers" tab
-3. Add supplier name and email
-4. Copy the unique supplier link
-5. Send the link to your supplier
+3. Add suppliers manually or select from global suppliers
 
 ### Supplier Portal
 
-Suppliers can:
-- View all RFQ items organized by category
-- Submit quoted prices
-- Provide their own MPN
-- Add comments for each item
-- Save their quotes
+1. Share the unique supplier portal link with suppliers
+2. Suppliers can view RFQ items by category
+3. Suppliers submit prices, MPNs, and comments
+4. Real-time updates show current lowest prices
 
-### Summary & Export
+### Summary Dashboard
 
-1. Navigate to the RFQ Summary page
-2. Filter by category and sort by price or name
-3. View all quotes with cheapest prices highlighted
-4. Price increases beyond threshold are marked in red
-5. Export selected quotes to CSV for ERP integration
+- View all quotes in a filterable table
+- Filter by unavailable items or items exceeding threshold
+- See winning suppliers highlighted
+- Export to CSV for ERP import
+- Create Purchase Orders directly in Cin7
 
-## CSV Format
+## API Endpoints
 
-### Import Format (Availability Report)
-The system accepts your standard Availability Report CSV with the following required columns:
-- `SKU`: Product SKU (MPN is automatically extracted from SKU format: `XX_XX_MPN`)
-- `ProductName`: Product name
-- `Category`: Product category
-- `PriceTier1`: Expected buy price
-- `Available` or `OnHand`: Quantity needed
+All API endpoints are under `/api/`:
 
-Example:
-```csv
-Category,SKU,ProductName,PriceTier1,Available
-"DDR5 Memory","MM_W2F_32D56000DC","32GB non-RGB DDR5 6000MHz (2 x 16GB)",105.00,4
-"AMD Ryzen Processors (AM5)","CP_AMD_9600X","AMD Ryzen 5 9600X 6-Core 5.4GHz",241.66,4
-```
+### RFQ Endpoints
+- `GET /api/rfq/list` - List all RFQs
+- `POST /api/rfq/create` - Create new RFQ
+- `GET /api/rfq/:id` - Get RFQ details
+- `GET /api/rfq/:id/summary` - Get RFQ summary
+- `POST /api/rfq/:id/supplier` - Add supplier to RFQ
+- `POST /api/rfq/:id/supplier/:supplierId/create-po` - Create PO in Cin7
 
-**MPN Extraction**: The MPN is automatically extracted from the SKU format. For SKUs like `MM_W2F_32D56000DC`, the MPN is `32D56000DC` (the part after the second underscore).
+### Supplier Endpoints
+- `GET /api/supplier/:token` - Get supplier portal data
+- `POST /api/supplier/:token/quotes` - Submit quotes
 
-### Export Format
-The exported CSV includes:
-- SKU, Product Name, MPN, Category
-- Quantity, Expected Price
-- Selected Supplier, Selected Price, Selected MPN
-- Supplier Comments
+### Settings Endpoints
+- `GET /api/settings/suppliers` - Get global suppliers
+- `POST /api/settings/suppliers` - Add global supplier
+- `GET /api/settings/dear-inventory` - Get Dear Inventory config
+- `POST /api/settings/dear-inventory` - Configure Dear Inventory
+- `GET /api/settings/sku-exclusions` - Get SKU exclusion patterns
+- `POST /api/settings/sku-exclusions` - Add SKU exclusion pattern
+- `GET /api/settings/category-exclusions` - Get category exclusion patterns
+- `POST /api/settings/category-exclusions` - Add category exclusion pattern
 
-## Database
+### Dear Inventory Endpoints
+- `GET /api/dear-inventory/products` - Fetch products needing restock
 
-The application uses SQLite with Prisma ORM. To view the database:
+## Deployment
+
+### cPanel Deployment
+
+See `CPANEL_DEPLOYMENT.md` for detailed instructions.
+
+### General Deployment
+
+1. Set environment variables
+2. Run `npm install`
+3. Run `npx prisma generate`
+4. Run `npx prisma db push`
+5. Start server: `npm start`
+
+For production, ensure:
+- `NODE_ENV=production`
+- Database is properly configured (SQLite or PostgreSQL)
+- Encryption key is secure and stored safely
+
+## Development
+
 ```bash
-npx prisma studio
+# Run development server
+npm run dev
+
+# Database operations
+npm run db:push      # Push schema changes
+npm run db:studio    # Open Prisma Studio
+npm run db:generate  # Generate Prisma client
 ```
 
-## Customization
+## Dependencies
 
-### MPN Extraction
+### Production
+- `express` - Web server framework
+- `@prisma/client` - Database ORM
+- `cors` - CORS middleware
+- `crypto-js` - Encryption for API keys
+- `uuid` - Unique identifier generation
+- `papaparse` - CSV parsing (legacy)
 
-The MPN extraction logic is in `lib/sku-lookup.ts`. The function `extractMPNFromSKU()` handles SKU formats like:
-- `CATEGORY_BRAND_MPN` → MPN is the 3rd segment
-- `CATEGORY_BRAND_MPN_SUFFIX` → MPN is the 3rd segment
-- `PREFIX-CATEGORY_BRAND_MPN_SUFFIX` → MPN is extracted after removing prefix
+### Development
+- `prisma` - Prisma CLI
+- Type definitions for TypeScript support
 
-### Categories
+## Browser Support
 
-Categories are automatically extracted from the CSV `Category` column.
+- Modern browsers (Chrome, Firefox, Safari, Edge)
+- Bootstrap 5.3.2 compatible browsers
+- JavaScript ES6+ required
 
-## Tech Stack
+## License
 
-- Next.js 14
-- TypeScript
-- Prisma (SQLite)
-- Tailwind CSS
-- PapaParse (CSV handling)
-- CryptoJS (API key encryption)
-- Dear Inventory (Cin7) API integration
-
-## Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-# Dear Inventory API Encryption Key (required for production)
-# Generate a strong random key for encrypting API credentials
-DEAR_INVENTORY_ENCRYPTION_KEY=your-secure-encryption-key-here
-```
-
+Private - All rights reserved

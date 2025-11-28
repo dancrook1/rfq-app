@@ -1,0 +1,64 @@
+/* Minimal custom CSS - Most styling now handled by Bootstrap */
+
+/* Custom loading spinner (kept for compatibility) */
+.loading {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #3b82f6;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Background gradient (optional - can be removed if using Bootstrap bg-light) */
+.bg-gradient {
+  background: linear-gradient(to bottom right, #eff6ff, white, #eef2ff);
+}
+
+/* Custom table styles for resizable columns - keep these */
+.summary-table {
+  font-size: 0.875rem;
+}
+
+/* Ensure Bootstrap tables work with our resizable columns */
+.resizable-table.table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* Category header rows */
+.resizable-table .category-header {
+  background-color: #f8f9fa !important;
+  border-top: 2px solid #dee2e6 !important;
+}
+
+/* Custom badge styles if needed (Bootstrap badges should work) */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Ensure sticky columns work with Bootstrap tables */
+.resizable-table th[style*="position: sticky"],
+.resizable-table td[style*="position: sticky"] {
+  z-index: 10;
+}
+
+/* Tooltip styling improvements */
+[data-bs-toggle="tooltip"] {
+  cursor: help;
+}
+
+/* Ensure full width for detail pages */
+.container-fluid {
+  width: 100%;
+}

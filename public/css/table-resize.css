@@ -1,0 +1,68 @@
+/* Resizable Table Columns */
+.resizable-table {
+  position: relative;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.resizable-table th {
+  position: relative;
+  padding: 0 !important;
+  border-right: 1px solid #e5e7eb;
+}
+
+.resizable-table th .th-content {
+  padding: 0.875rem 1rem;
+  padding-right: 1.5rem;
+  display: block;
+}
+
+.resizable-table th .resize-handle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 5px;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+  background: transparent;
+  z-index: 2;
+  transition: background-color 0.2s;
+}
+
+.resizable-table th .resize-handle:hover {
+  background: #3b82f6;
+}
+
+.resizable-table th.resizing {
+  user-select: none;
+  background: #f0f9ff !important;
+}
+
+.resizable-table th.resizing .resize-handle {
+  background: #2563eb;
+  width: 3px;
+}
+
+.resizable-table tbody td {
+  border-right: 1px solid #f3f4f6;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.resizable-table tbody tr {
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.resizable-table tbody tr:hover {
+  border-bottom-color: #d1d5db;
+}
+
+.resizable-table tbody tr:hover td {
+  border-bottom-color: #d1d5db;
+}
+
+.resizable-table tbody td:last-child,
+.resizable-table th:last-child {
+  border-right: none;
+}
+

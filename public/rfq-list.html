@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RFQ List - RFQ Management System</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="min-h-screen bg-gradient">
+  <div class="container" style="padding-top: 2rem; padding-bottom: 2rem;">
+    <div class="flex justify-between items-center" style="margin-bottom: 1.5rem;">
+      <h1 class="text-3xl font-bold">RFQ List</h1>
+      <a href="/rfq/create" class="btn-primary">Create New RFQ</a>
+    </div>
+
+    <div id="loading" class="text-center" style="padding: 2rem;">
+      <div class="loading" style="width: 2rem; height: 2rem; margin: 0 auto;"></div>
+      <p class="text-gray-600" style="margin-top: 1rem;">Loading...</p>
+    </div>
+
+    <div id="empty" style="display: none;">
+      <p class="text-gray-500">No RFQs found. Create your first RFQ to get started.</p>
+    </div>
+
+    <div id="rfqList" style="display: none;"></div>
+  </div>
+
+  <script src="/js/rfq-list.js"></script>
+</body>
+</html>
+
