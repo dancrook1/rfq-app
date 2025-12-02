@@ -42,6 +42,21 @@ router.post('/create', async (req, res) => {
       return res.status(400).json({ message: 'Invalid request data' });
     }
 
+    // Fetch all urgent stock items and add them to the RFQ
+    const urgentItems = await prisma.urgentStock.findMany();
+    const urgentItemsForRFQ = urgentItems.map(urgent => ({
+      sku: urgent.sku,
+      productName: urgent.productName || '',
+      category: urgent.category || 'Other',
+      targetPrice: urgent.targetPrice || 0,
+      quantity: urgent.quantity || 1,
+      onOrder: 0,
+      isUrgent: true // Flag to identify urgent items
+    }));
+
+    // Combine regular items with urgent items
+    const allItems = [...items, ...urgentItemsForRFQ];
+
     // Fetch all global suppliers
     const globalSuppliers = await prisma.globalSupplier.findMany({
       orderBy: { name: 'asc' }
@@ -54,7 +69,7 @@ router.post('/create', async (req, res) => {
     ]);
     
     // Filter out excluded SKUs and categories
-    const filteredItems = filterExcludedItems(items, skuExclusionPatterns, categoryExclusionPatterns);
+    const filteredItems = filterExcludedItems(allItems, skuExclusionPatterns, categoryExclusionPatterns);
     
     if (filteredItems.length === 0) {
       return res.status(400).json({ message: 'No items to add after applying exclusion patterns' });
@@ -82,6 +97,7 @@ router.post('/create', async (req, res) => {
               targetPrice: item.targetPrice || 0,
               quantity: item.quantity || 0,
               onOrder: item.onOrder || 0,
+              isUrgent: item.isUrgent || false,
             };
           })
         },
@@ -95,7 +111,12 @@ router.post('/create', async (req, res) => {
       }
     });
 
-    res.json({ rfqId: rfq.id });
+    // Clear urgent stock items after adding them to RFQ
+    if (urgentItems.length > 0) {
+      await prisma.urgentStock.deleteMany({});
+    }
+
+    res.json({ rfqId: rfq.id, urgentItemsAdded: urgentItems.length });
   } catch (error) {
     console.error('Error creating RFQ:', error);
     res.status(500).json({ message: error.message || 'Failed to create RFQ' });

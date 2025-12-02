@@ -22,11 +22,13 @@ const rfqRoutes = require('./routes/rfq');
 const supplierRoutes = require('./routes/supplier');
 const settingsRoutes = require('./routes/settings');
 const dearInventoryRoutes = require('./routes/dear-inventory');
+const urgentStockRoutes = require('./routes/urgent-stock');
 
 app.use('/api/rfq', rfqRoutes);
 app.use('/api/supplier', supplierRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/dear-inventory', dearInventoryRoutes);
+app.use('/api/urgent-stock', urgentStockRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -56,6 +58,10 @@ app.get('/settings', (req, res) => {
 
 app.get('/supplier/:token', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'supplier-portal.html'));
+});
+
+app.get('/urgent-stock', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'urgent-stock.html'));
 });
 
 // Error handling middleware

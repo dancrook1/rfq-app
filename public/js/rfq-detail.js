@@ -304,6 +304,13 @@ function renderSummaryTab() {
             >
               📥 Export CSV
             </button>
+            <a
+              href="/urgent-stock"
+              class="btn btn-sm btn-danger"
+              title="Add parts to urgent stock"
+            >
+              🚨 Add Part
+            </a>
           </div>
         </div>
       </div>
@@ -410,10 +417,13 @@ function renderSummaryTab() {
                     return { supplier: supplier?.name || 'Unknown', comment: q.comments };
                   });
                 
+                const isUrgent = item.isUrgent || false;
+                const urgentStyle = isUrgent ? 'border-left: 4px solid #dc2626; background: rgba(254, 226, 226, 0.2) !important;' : '';
                 return `
-                  <tr style="border-bottom: 1px solid #e5e7eb; ${priceExceedsThreshold ? 'background: rgba(254, 226, 226, 0.15);' : cheapest ? 'background: rgba(209, 250, 229, 0.15);' : ''}">
+                  <tr style="border-bottom: 1px solid #e5e7eb; ${priceExceedsThreshold ? 'background: rgba(254, 226, 226, 0.15);' : cheapest ? 'background: rgba(209, 250, 229, 0.15);' : ''} ${urgentStyle}">
                     <td style="padding: 0.875rem 1rem; font-weight: 500; color: #111827; position: sticky; left: 0; background: white; z-index: 0; white-space: nowrap;">
                       <div style="display: flex; align-items: center; gap: 0.25rem;">
+                        ${isUrgent ? '<span style="color: #dc2626; font-weight: 700; margin-right: 0.25rem;" title="Urgent Stock Item">🚨</span>' : ''}
                         ${item.productName}
                         ${allComments.length > 0 ? `
                           <div style="position: relative; display: inline-block;">
@@ -498,13 +508,27 @@ function renderSummaryTab() {
                       ` : '<span style="color: #9ca3af; font-size: 0.75rem;">-</span>'}
                     </td>
                     <td style="padding: 0.875rem 1rem; text-align: center; white-space: nowrap;">
-                      ${priceExceedsThreshold ? `
-                        <span class="badge bg-danger">⚠ Exceeds</span>
-                      ` : cheapest ? `
-                        <span class="badge bg-success">✓ Good</span>
-                      ` : `
-                        <span class="badge bg-secondary">Pending</span>
-                      `}
+                      <div style="display: flex; flex-direction: column; gap: 0.25rem; align-items: center;">
+                        ${priceExceedsThreshold ? `
+                          <span class="badge bg-danger">⚠ Exceeds</span>
+                        ` : cheapest ? `
+                          <span class="badge bg-success">✓ Good</span>
+                        ` : `
+                          <span class="badge bg-secondary">Pending</span>
+                        `}
+                        ${!isUrgent ? `
+                          <button
+                            onclick="addToUrgentStockFromSummary('${item.itemId}', '${(item.sku || '').replace(/'/g, "\\'")}', '${(item.productName || '').replace(/'/g, "\\'")}', '${(item.category || 'Other').replace(/'/g, "\\'")}', '${(item.mpn || '').replace(/'/g, "\\'")}', ${item.quantity}, ${item.targetPrice || 0})"
+                            class="btn btn-sm btn-outline-danger"
+                            style="font-size: 0.75rem; padding: 0.125rem 0.5rem;"
+                            title="Add to urgent stock"
+                          >
+                            🚨 Add
+                          </button>
+                        ` : `
+                          <span class="badge bg-danger" style="font-size: 0.7rem;">Urgent</span>
+                        `}
+                      </div>
                     </td>
                   </tr>
                 `;
@@ -1175,6 +1199,65 @@ function initColumnResizing() {
       currentHeader = null;
     }
   });
+}
+
+// Add item to urgent stock from summary
+async function addToUrgentStockFromSummary(itemId, sku, productName, category, mpn, quantity, targetPrice) {
+  sku = sku || '';
+  productName = productName || '';
+  category = category || 'Other';
+  mpn = mpn || '';
+  quantity = quantity || 1;
+  targetPrice = targetPrice || 0;
+  
+  if (!sku) {
+    alert('SKU is required to add to urgent stock');
+    return;
+  }
+  
+  const confirmed = confirm(
+    `Add "${productName || sku}" to urgent stock?\n\n` +
+    `SKU: ${sku}\n` +
+    `Quantity: ${quantity}\n` +
+    `This item will be automatically included in the next RFQ you create.`
+  );
+  
+  if (!confirmed) {
+    return;
+  }
+  
+  try {
+    const response = await fetch('/api/urgent-stock', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sku: sku,
+        productName: productName || null,
+        category: category,
+        mpn: mpn || null,
+        quantity: quantity,
+        targetPrice: targetPrice || null,
+        notes: `Added from RFQ: ${rfq?.name || 'Unknown'}`
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert(`✓ "${productName || sku}" has been added to urgent stock.\n\nIt will be automatically included in your next RFQ.`);
+      // Refresh the summary to show updated state
+      if (rfq) {
+        const pathParts = window.location.pathname.split('/');
+        const rfqId = pathParts[pathParts.length - 1];
+        fetchSummary(rfqId);
+      }
+    } else {
+      alert(`Failed to add item: ${data.message || 'Unknown error'}`);
+    }
+  } catch (error) {
+    console.error('Error adding to urgent stock:', error);
+    alert(`Failed to add item to urgent stock: ${error.message || 'Unknown error'}`);
+  }
 }
 
 // Delete RFQ function

@@ -32,6 +32,7 @@ model RFQItem {
   quantity      Int      // Quantity needed (absolute value of negative Available)
   onOrder       Int      @default(0) // Quantity already on order
   forcedSupplierId String? // Override: force purchase from this supplier even if not cheapest
+  isUrgent      Boolean  @default(false) // Flag to indicate item was added from urgent stock
   quotes        Quote[]
 }
 
@@ -96,5 +97,20 @@ model CategoryExclusionPattern {
   description String? // Optional description
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model UrgentStock {
+  id            String   @id @default(uuid())
+  sku           String   @unique
+  productName   String?
+  mpn           String?
+  category      String?
+  quantity      Int      @default(1) // Quantity needed
+  targetPrice   Float?   // Optional target price
+  notes         String?  // Optional notes
+  requestedBy   String?  // Optional: who requested it
+  dearProductId String?  // Link to Dear Inventory product ID
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 

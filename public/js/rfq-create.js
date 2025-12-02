@@ -8,6 +8,7 @@ let loading = false;
 document.addEventListener('DOMContentLoaded', () => {
   fetchGlobalSuppliers();
   checkDearConfig();
+  fetchUrgentItems();
   
   const form = document.getElementById('rfqForm');
   const dataSourceRadios = document.querySelectorAll('input[name="dataSource"]');
@@ -59,12 +60,48 @@ async function fetchGlobalSuppliers() {
   }
 }
 
+let urgentItems = [];
+
+async function fetchUrgentItems() {
+  try {
+    const response = await fetch('/api/urgent-stock');
+    const data = await response.json();
+    if (data.success) {
+      urgentItems = data.items || [];
+      updateGlobalSuppliersDisplay();
+    }
+  } catch (error) {
+    console.error('Error fetching urgent items:', error);
+  }
+}
+
 function updateGlobalSuppliersDisplay() {
   const infoDiv = document.querySelector('.global-suppliers-info');
   if (!infoDiv) return;
   
+  let html = '';
+  
+  // Urgent items info
+  if (urgentItems.length > 0) {
+    html += `
+      <div class="alert alert-danger mt-3">
+        <p class="mb-2 fw-semibold">
+          🚨 ${urgentItems.length} urgent stock item${urgentItems.length !== 1 ? 's' : ''} will be automatically added to this RFQ:
+        </p>
+        <ul class="mb-0 small">
+          ${urgentItems.slice(0, 5).map(item => `<li><code>${item.sku}</code> - ${item.productName || 'Unknown'}</li>`).join('')}
+          ${urgentItems.length > 5 ? `<li class="text-muted">... and ${urgentItems.length - 5} more</li>` : ''}
+        </ul>
+        <p class="mb-0 mt-2 small">
+          <a href="/urgent-stock" class="alert-link fw-semibold">Manage urgent stock items</a>
+        </p>
+      </div>
+    `;
+  }
+  
+  // Global suppliers info
   if (globalSuppliers.length > 0) {
-    infoDiv.innerHTML = `
+    html += `
       <div class="alert alert-info mt-3">
         <p class="mb-2 fw-semibold">
           ℹ️ ${globalSuppliers.length} global supplier${globalSuppliers.length !== 1 ? 's' : ''} will be automatically added:
@@ -75,7 +112,7 @@ function updateGlobalSuppliersDisplay() {
       </div>
     `;
   } else {
-    infoDiv.innerHTML = `
+    html += `
       <div class="alert alert-warning mt-3">
         <p class="mb-0">
           ⚠️ No global suppliers found. <a href="/settings" class="alert-link fw-semibold">Add suppliers in Settings</a> to automatically include them in new RFQs.
@@ -83,6 +120,8 @@ function updateGlobalSuppliersDisplay() {
       </div>
     `;
   }
+  
+  infoDiv.innerHTML = html;
 }
 
 async function checkDearConfig() {
