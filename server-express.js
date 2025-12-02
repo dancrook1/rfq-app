@@ -15,7 +15,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files (HTML, CSS, JS)
-app.use(express.static(path.join(__dirname, 'public')));
+// In Vercel, __dirname points to the api directory, so we need to go up one level
+const publicPath = path.join(__dirname, process.env.VERCEL ? '../public' : 'public');
+app.use(express.static(publicPath));
 
 // API Routes
 const rfqRoutes = require('./routes/rfq');
@@ -36,32 +38,34 @@ app.get('/api/health', (req, res) => {
 });
 
 // Serve HTML pages
+const htmlPath = (filename) => path.join(publicPath, filename);
+
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(htmlPath('index.html'));
 });
 
 app.get('/rfq/list', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'rfq-list.html'));
+  res.sendFile(htmlPath('rfq-list.html'));
 });
 
 app.get('/rfq/create', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'rfq-create.html'));
+  res.sendFile(htmlPath('rfq-create.html'));
 });
 
 app.get('/rfq/:id', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'rfq-detail.html'));
+  res.sendFile(htmlPath('rfq-detail.html'));
 });
 
 app.get('/settings', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'settings.html'));
+  res.sendFile(htmlPath('settings.html'));
 });
 
 app.get('/supplier/:token', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'supplier-portal.html'));
+  res.sendFile(htmlPath('supplier-portal.html'));
 });
 
 app.get('/urgent-stock', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'urgent-stock.html'));
+  res.sendFile(htmlPath('urgent-stock.html'));
 });
 
 // Error handling middleware
